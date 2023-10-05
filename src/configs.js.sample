@@ -1,0 +1,15 @@
+const configs = {
+  clientId: 'demo-app',
+  authorizationEndpoint: 'http://127.0.0.1:8080/user-auth/v2/users/oauth/authorize',
+  logoutEndpoint: 'http://127.0.0.1:8080/user-auth/v2/users/logout',
+  tokenEndpoint: 'http://127.0.0.1:8080/user-auth/v2/users/oauth/token',
+  redirectUri: 'http://127.0.0.1:3009',
+  scope: 'openid',
+  // Example to redirect back to original path after login has completed
+  preLogin: () => localStorage.setItem('preLoginPath', window.location.pathname),
+  postLogin: () => window.location.replace(localStorage.getItem('preLoginPath') || ''),
+  decodeToken: false,
+  autoLogin: false,
+}
+
+export default configs;
