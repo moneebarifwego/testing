@@ -25,7 +25,7 @@ function LoginInfo(): JSX.Element {
       {token ? (
         <>
           <div>
-                        {/* <button onClick={()=>refreshAccessToken()}>Refresh token</button> */}
+            <button>Refresh token</button>
             <h4>Access Token (JWT)</h4>
             <pre
               style={{
