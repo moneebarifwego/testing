@@ -11,7 +11,6 @@ const configs = {
   decodeToken: true,
   autoLogin: false,
   onRefreshTokenExpire: (event) => window.confirm('Session expired. Refresh page to continue using the site?') && event.login(),
-  refreshTokenExpiresIn :1,
 }
 
 export default configs;

@@ -3,12 +3,15 @@ import configs from './configs'
 
 // @ts-ignore
 import ReactDOM from 'react-dom'
-import { AuthContext, AuthProvider, TAuthConfig, IAuthContext } from 'react-oauth2-code-pkce'
+import { AuthContext } from './dist/AuthContext'
+import { AuthProvider } from './dist/AuthContext'
+import { TAuthConfig } from './dist/Types'
+import { IAuthContext } from './dist/Types'
 
 const authConfig: TAuthConfig = configs
 
 function LoginInfo(): JSX.Element {
-  const { tokenData, token, login, logOut, idToken, idTokenData, error }: IAuthContext = useContext(AuthContext)
+  const { tokenData, token, login, logOut, idToken, idTokenData, error, refreshToken }: IAuthContext = useContext(AuthContext)
 
   console.log(token);
   if (error) {
@@ -24,8 +27,24 @@ function LoginInfo(): JSX.Element {
     <>
       {token ? (
         <>
+          <button>Get Refresh token</button>
           <div>
-            <button>Refresh token</button>
+            <h4>Refresh Token (JWT)</h4>
+            <pre
+              style={{
+                width: '400px',
+                margin: '10px',
+                padding: '5px',
+                border: 'black 2px solid',
+                wordBreak: 'break-all',
+                whiteSpace: 'break-spaces',
+              }}
+            >
+              {refreshToken}
+            </pre>
+          </div>
+
+          <div>
             <h4>Access Token (JWT)</h4>
             <pre
               style={{
