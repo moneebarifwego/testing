@@ -21,7 +21,7 @@ export const AuthContext = createContext<IAuthContext>({
   error: null,
   loginInProgress: false,
   refreshToken: '',
-  handleExpiredRefreshToken:(initial?: boolean)=>null
+  refreshAccessToken:(initial?: boolean)=>null
 })
 
 export const AuthProvider = ({ authConfig, children }: IAuthProvider) => {
@@ -137,7 +137,7 @@ export const AuthProvider = ({ authConfig, children }: IAuthProvider) => {
     // if (!epochTimeIsPast(tokenExpire)) return
 
     // Other instance (tab) is currently refreshing. This instance skip the refresh if not initial
-    if (refreshInProgress && !initial) return
+    // if (refreshInProgress && !initial) return
 
     // The refreshToken has expired
     // if (epochTimeIsPast(refreshTokenExpire)) return handleExpiredRefreshToken(initial)
@@ -178,10 +178,10 @@ export const AuthProvider = ({ authConfig, children }: IAuthProvider) => {
   }
 
   // Register the 'check for soon expiring access token' interval (Every 10 seconds)
-  useEffect(() => {
-    interval = setInterval(() => refreshAccessToken(), 10000) // eslint-disable-line
-    return () => clearInterval(interval)
-  }, [token, refreshToken, refreshTokenExpire, tokenExpire]) // Replace the interval with a new when values used inside refreshAccessToken changes
+  // useEffect(() => {
+  //   interval = setInterval(() => refreshAccessToken(), 10000) // eslint-disable-line
+  //   return () => clearInterval(interval)
+  // }, [token, refreshToken, refreshTokenExpire, tokenExpire]) // Replace the interval with a new when values used inside refreshAccessToken changes
 
   // This ref is used to make sure the 'fetchTokens' call is only made once.
   // Multiple calls with the same code will, and should, return an error from the API
@@ -255,7 +255,7 @@ export const AuthProvider = ({ authConfig, children }: IAuthProvider) => {
   }, []) // eslint-disable-line
 
   return (
-    <AuthContext.Provider value={{ token, tokenData, idToken, idTokenData, login, logOut, error, loginInProgress, refreshToken, handleExpiredRefreshToken }}>
+    <AuthContext.Provider value={{ token, tokenData, idToken, idTokenData, login, logOut, error, loginInProgress, refreshToken, refreshAccessToken }}>
       {children}
     </AuthContext.Provider>
   )

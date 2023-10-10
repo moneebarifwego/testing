@@ -48,7 +48,7 @@ export interface IAuthContext {
   idTokenData?: TTokenData
   loginInProgress: boolean
   refreshToken? : string
-  handleExpiredRefreshToken?: (inital?:boolean)=>void
+  refreshAccessToken?: (inital?:boolean)=>void
 }
 
 // Input from users of the package, some optional values
