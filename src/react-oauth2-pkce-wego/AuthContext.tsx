@@ -21,6 +21,7 @@ export const AuthContext = createContext<IAuthContext>({
   error: null,
   loginInProgress: false,
   refreshToken: '',
+  handleExpiredRefreshToken:(initial?: boolean)=>null
 })
 
 export const AuthProvider = ({ authConfig, children }: IAuthProvider) => {
@@ -133,13 +134,13 @@ export const AuthProvider = ({ authConfig, children }: IAuthProvider) => {
   function refreshAccessToken(initial = false): void {
     if (!token) return
     // The token has not expired. Do nothing
-    if (!epochTimeIsPast(tokenExpire)) return
+    // if (!epochTimeIsPast(tokenExpire)) return
 
     // Other instance (tab) is currently refreshing. This instance skip the refresh if not initial
     if (refreshInProgress && !initial) return
 
     // The refreshToken has expired
-    if (epochTimeIsPast(refreshTokenExpire)) return handleExpiredRefreshToken(initial)
+    // if (epochTimeIsPast(refreshTokenExpire)) return handleExpiredRefreshToken(initial)
 
     // The access_token has expired, and we have a non-expired refresh_token. Use it to refresh access_token.
     if (refreshToken) {
@@ -254,7 +255,7 @@ export const AuthProvider = ({ authConfig, children }: IAuthProvider) => {
   }, []) // eslint-disable-line
 
   return (
-    <AuthContext.Provider value={{ token, tokenData, idToken, idTokenData, login, logOut, error, loginInProgress, refreshToken }}>
+    <AuthContext.Provider value={{ token, tokenData, idToken, idTokenData, login, logOut, error, loginInProgress, refreshToken, handleExpiredRefreshToken }}>
       {children}
     </AuthContext.Provider>
   )

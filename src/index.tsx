@@ -23,7 +23,7 @@ const configs = {
 const authConfig: TAuthConfig = configs
 
 function LoginInfo(): JSX.Element {
-  const { tokenData, token, login, logOut, idToken, idTokenData, error, refreshToken }: IAuthContext = useContext(AuthContext)
+  const { tokenData, token, login, logOut, idToken, idTokenData, error, refreshToken, handleExpiredRefreshToken }: IAuthContext = useContext(AuthContext)
 
   console.log(token);
   if (error) {
@@ -39,7 +39,7 @@ function LoginInfo(): JSX.Element {
     <>
       {token ? (
         <>
-          <button>Get Refresh token</button>
+          <button onClick={()=>handleExpiredRefreshToken&&handleExpiredRefreshToken()}>Refresh token</button>
           <div>
             <h4>Refresh Token (JWT)</h4>
             <pre
