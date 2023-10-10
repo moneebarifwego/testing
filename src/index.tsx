@@ -39,7 +39,7 @@ function LoginInfo(): JSX.Element {
     <>
       {token ? (
         <>
-          <button onClick={()=>refreshAccessToken&&refreshAccessToken()}>Refresh token</button>
+          <button onClick={()=>refreshAccessToken&&refreshAccessToken()}>Refresh Access token</button>
           <div>
             <h4>Refresh Token (JWT)</h4>
             <pre
