@@ -75,6 +75,7 @@ export const fetchTokens = (config: TInternalConfig): Promise<TTokenResponse> =>
     throw Error("Parameter 'code' not found in URL. \nHas authentication taken place?")
   }
   if (!codeVerifier) {
+    redirectToLogin(config)
     throw Error("Can't get tokens without the CodeVerifier. \nHas authentication taken place?")
   }
 
