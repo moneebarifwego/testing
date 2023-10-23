@@ -195,7 +195,7 @@ export const AuthProvider = ({ authConfig, children }: IAuthProvider) => {
     // The client has been redirected back from the auth endpoint with an auth code
     if (loginInProgress) {
       const urlParams = new URLSearchParams(window.location.search)
-      if (!urlParams.get('code')) {
+      if (!urlParams.get('code') || urlParams.get('re-authenticaticate') === 'true') {
         // This should not happen. There should be a 'code' parameter in the url by now..."
         const error_description =
           urlParams.get('error_description') ||
