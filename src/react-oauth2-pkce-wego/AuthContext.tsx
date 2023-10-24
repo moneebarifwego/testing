@@ -197,15 +197,15 @@ export const AuthProvider = ({ authConfig, children }: IAuthProvider) => {
 
   if(reAuthenticaticate){
     console.log("IN IT : Moneeb "+reAuthenticaticate)
-    clearStorage && clearStorage()
-    redirectToLogin(config)
-    throw Error("Can't get tokens without the reAuthenticaticate. \nHas authentication taken place?")
-
+    login()
+    return;
   }
+  console.log('reAuthenticaticate', loginInProgress)
+
     // The client has been redirected back from the auth endpoint with an auth code
     if (loginInProgress) {
       const urlParams = new URLSearchParams(window.location.search)
-      if (!urlParams.get('code') || urlParams.get('re-authenticaticate') === 'true') {
+      if (!urlParams.get('code')) {
         // This should not happen. There should be a 'code' parameter in the url by now..."
         const error_description =
           urlParams.get('error_description') ||
