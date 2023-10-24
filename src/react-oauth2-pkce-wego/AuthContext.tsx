@@ -218,7 +218,7 @@ export const AuthProvider = ({ authConfig, children }: IAuthProvider) => {
           setError((e as Error).message)
         }
         // Request tokens from auth server with the auth code
-        fetchTokens(config)
+        fetchTokens(config , clearStorage)
           .then((tokens: TTokenResponse) => {
             handleTokenResponse(tokens)
             // Call any postLogin function in authConfig

@@ -61,7 +61,8 @@ function postTokenRequest(tokenEndpoint: string, tokenRequest: TTokenRequest): P
   })
 }
 
-export const fetchTokens = (config: TInternalConfig): Promise<TTokenResponse> => {
+
+export const fetchTokens = (config: TInternalConfig, clearStorage: any): Promise<TTokenResponse> => {
   /*
     The browser has been redirected from the authentication endpoint with
     a 'code' url parameter.
@@ -70,13 +71,25 @@ export const fetchTokens = (config: TInternalConfig): Promise<TTokenResponse> =>
   const urlParams = new URLSearchParams(window.location.search)
   const authCode = urlParams.get('code')
   const codeVerifier = window.sessionStorage.getItem(codeVerifierStorageKey)
+  const reAuthenticaticate = urlParams.get('re-authenticaticate')
+  
+
 
   if (!authCode) {
     throw Error("Parameter 'code' not found in URL. \nHas authentication taken place?")
   }
+
+  
   if (!codeVerifier) {
     redirectToLogin(config)
     throw Error("Can't get tokens without the CodeVerifier. \nHas authentication taken place?")
+  }
+
+  if(reAuthenticaticate){
+    clearStorage && clearStorage()
+    redirectToLogin(config)
+    throw Error("Can't get tokens without the reAuthenticaticate. \nHas authentication taken place?")
+
   }
 
   const tokenRequest: TTokenRequestWithCodeAndVerifier = {
