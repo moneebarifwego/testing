@@ -192,6 +192,16 @@ export const AuthProvider = ({ authConfig, children }: IAuthProvider) => {
 
   // Runs once on page load
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const reAuthenticaticate = urlParams.get('re-authenticaticate')
+
+  if(reAuthenticaticate){
+    console.log("IN IT : Moneeb "+reAuthenticaticate)
+    clearStorage && clearStorage()
+    redirectToLogin(config)
+    throw Error("Can't get tokens without the reAuthenticaticate. \nHas authentication taken place?")
+
+  }
     // The client has been redirected back from the auth endpoint with an auth code
     if (loginInProgress) {
       const urlParams = new URLSearchParams(window.location.search)

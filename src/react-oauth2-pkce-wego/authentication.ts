@@ -72,8 +72,6 @@ export const fetchTokens = (config: TInternalConfig, clearStorage: any): Promise
   const authCode = urlParams.get('code')
   const codeVerifier = window.sessionStorage.getItem(codeVerifierStorageKey)
   const reAuthenticaticate = urlParams.get('re-authenticaticate')
-
-  console.log(reAuthenticaticate)
   
 
 
