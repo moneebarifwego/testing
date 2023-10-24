@@ -72,6 +72,8 @@ export const fetchTokens = (config: TInternalConfig, clearStorage: any): Promise
   const authCode = urlParams.get('code')
   const codeVerifier = window.sessionStorage.getItem(codeVerifierStorageKey)
   const reAuthenticaticate = urlParams.get('re-authenticaticate')
+
+  console.log(reAuthenticaticate)
   
 
 
@@ -86,6 +88,7 @@ export const fetchTokens = (config: TInternalConfig, clearStorage: any): Promise
   }
 
   if(reAuthenticaticate){
+    console.log("IN IT : Moneeb "+reAuthenticaticate)
     clearStorage && clearStorage()
     redirectToLogin(config)
     throw Error("Can't get tokens without the reAuthenticaticate. \nHas authentication taken place?")
