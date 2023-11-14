@@ -41,6 +41,22 @@ function LoginInfo(): JSX.Element {
         <>
           <button onClick={()=>refreshAccessToken&&refreshAccessToken()}>Refresh Access token</button>
           <div>
+            <h4>Login Information from ID Token (Base64 decoded JWT)</h4>
+            <pre
+                style={{
+                  width: '400px',
+                  margin: '10px',
+                  padding: '5px',
+                  border: 'black 2px solid',
+                  wordBreak: 'break-all',
+                  whiteSpace: 'break-spaces',
+                }}
+            >
+              {JSON.stringify(idTokenData, null, 2)}
+            </pre>
+          </div>
+          
+          <div>
             <h4>Refresh Token (JWT)</h4>
             <pre
               style={{
@@ -104,21 +120,6 @@ function LoginInfo(): JSX.Element {
             </pre>
           </div>
 
-          <div>
-            <h4>Login Information from ID Token (Base64 decoded JWT)</h4>
-            <pre
-                style={{
-                  width: '400px',
-                  margin: '10px',
-                  padding: '5px',
-                  border: 'black 2px solid',
-                  wordBreak: 'break-all',
-                  whiteSpace: 'break-spaces',
-                }}
-            >
-              {JSON.stringify(idTokenData, null, 2)}
-            </pre>
-          </div>
 
           <button onClick={() => logOut()}>Logout</button>
         </>
