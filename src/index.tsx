@@ -135,17 +135,7 @@ function LoginInfo(): JSX.Element {
 ReactDOM.render(
   <div>
     <div>
-      <h1>Demo using the 'react-oauth2-code-pkce' package</h1>
-      <p>
-        Github:{' '}
-        <a href="https://github.com/soofstad/react-oauth2-pkce">https://github.com/soofstad/react-oauth2-pkce</a>
-      </p>
-      <p>
-        NPM:{' '}
-        <a href="https://www.npmjs.com/package/react-oauth2-code-pkce">
-          https://www.npmjs.com/package/react-oauth2-code-pkce
-        </a>
-      </p>
+      <h1>Wego Authentication Demo App</h1>
     </div>
     <AuthProvider authConfig={authConfig}>
       {/* @ts-ignore*/}
