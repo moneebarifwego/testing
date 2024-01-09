@@ -7,9 +7,9 @@ import {TAuthConfig , IAuthContext, AuthProvider, AuthContext} from './react-oau
 
 const configs = {
   clientId: 'demo-app',
-  authorizationEndpoint: 'https://srv.wegostaging.com/user-auth/v2/users/oauth/authorize',
-  logoutEndpoint: 'https://srv.wegostaging.com/user-auth/v2/users/logout',
-  tokenEndpoint: 'https://srv.wegostaging.com/user-auth/v2/users/oauth/token',
+  authorizationEndpoint: 'https://auth.wegostaging.com/user-auth/v2/users/oauth/authorize',
+  logoutEndpoint: 'https://auth.wegostaging.com/user-auth/v2/users/logout',
+  tokenEndpoint: 'https://auth.wegostaging.com/user-auth/v2/users/oauth/token',
   redirectUri: 'https://moneebarifwego.github.io/testing',
   scope: 'openid',
   // Example to redirect back to original path after login has completed
