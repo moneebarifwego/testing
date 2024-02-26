@@ -12,6 +12,10 @@ const configs = {
   tokenEndpoint: 'https://srv.wegostaging.com/user-auth/v2/users/oauth/token',
   redirectUri: 'https://moneebarifwego.github.io/testing',
   scope: 'openid',
+  extraAuthParameters: {
+    "locale": "ar",
+    "site_code": "SA"
+  },
   // Example to redirect back to original path after login has completed
   preLogin: () => localStorage.setItem('preLoginPath', window.location.pathname),
   postLogin: () => window.location.replace(localStorage.getItem('preLoginPath') || ''),
