@@ -6,14 +6,14 @@ import ReactDOM from 'react-dom'
 import {TAuthConfig , IAuthContext, AuthProvider, AuthContext} from './react-oauth2-pkce-wego'
 
 const configs = {
-  clientId: 'demo-app',
+  clientId: 'cbffa0a18fd0fdac2c7362f913a9c0b518a9f753e0f6c9f3086012d941e44b37',
   authorizationEndpoint: 'https://auth.wegostaging.com/user-auth/v2/users/oauth/authorize',
   logoutEndpoint: 'https://auth.wegostaging.com/user-auth/v2/users/logout',
   tokenEndpoint: 'https://srv.wegostaging.com/user-auth/v2/users/oauth/token',
   redirectUri: 'https://moneebarifwego.github.io/testing',
-  scope: 'openid',
+  scope: 'users',
   extraAuthParameters: {
-    "locale": "ar",
+    "locale": "en",
     "site_code": "SA"
   },
   // Example to redirect back to original path after login has completed
