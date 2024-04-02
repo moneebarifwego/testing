@@ -193,7 +193,7 @@ export const AuthProvider = ({ authConfig, children }: IAuthProvider) => {
   // Runs once on page load
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
-    const reAuthenticaticate = urlParams.get('re-authenticaticate')
+    const reAuthenticaticate = urlParams.get('re-authenticate')
 
   if(reAuthenticaticate){
     console.log("IN IT : Moneeb "+reAuthenticaticate)

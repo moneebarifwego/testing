@@ -22,3 +22,17 @@ export async function postWithXForm(url: string, request: TTokenRequest): Promis
     return response
   })
 }
+
+export async function post(url: string, request: TTokenRequest): Promise<Response> {
+  return fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  }).then(async (response: Response) => {
+    if (!response.ok) {
+      const responseBody = await response.text()
+      throw new FetchError(response.status, response.statusText, responseBody)
+    }
+    return response
+  })
+}

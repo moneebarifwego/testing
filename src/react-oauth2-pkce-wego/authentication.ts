@@ -6,7 +6,7 @@ import {
   TTokenRequestWithCodeAndVerifier,
   TTokenRequestForRefresh,
 } from './Types'
-import { postWithXForm } from './httpUtils'
+import { postWithXForm, post } from './httpUtils'
 
 const codeVerifierStorageKey = 'PKCE_code_verifier'
 const stateStorageKey = 'ROCP_auth_state'
@@ -50,7 +50,7 @@ function isTokenResponse(body: any | TTokenResponse): body is TTokenResponse {
 }
 
 function postTokenRequest(tokenEndpoint: string, tokenRequest: TTokenRequest): Promise<TTokenResponse> {
-  return postWithXForm(tokenEndpoint, tokenRequest).then((response) => {
+  return post(tokenEndpoint, tokenRequest).then((response) => {
     return response.json().then((body: TTokenResponse | any): TTokenResponse => {
       if (isTokenResponse(body)) {
         return body
@@ -71,7 +71,7 @@ export const fetchTokens = (config: TInternalConfig, clearStorage: any): Promise
   const urlParams = new URLSearchParams(window.location.search)
   const authCode = urlParams.get('code')
   const codeVerifier = window.sessionStorage.getItem(codeVerifierStorageKey)
-  const reAuthenticaticate = urlParams.get('re-authenticaticate')
+  const reAuthenticaticate = urlParams.get('re-authenticate')
   
 
 
