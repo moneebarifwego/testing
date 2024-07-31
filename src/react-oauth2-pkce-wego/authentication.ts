@@ -54,7 +54,7 @@ export async function redirectToLogin(
     if (config?.preLogin) config.preLogin()
 
     if (method === 'popup') {
-      const handle: null | WindowProxy = window.open(loginUrl, 'loginPopup', 'popup width=600 height=600')
+      const handle: null | WindowProxy = window.open(loginUrl, 'loginPopup', 'popup width=725 height=600')
       if (handle) return
       console.warn('Popup blocked. Redirecting to login page. Disable popup blocker to use popup login.')
     }
