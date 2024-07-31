@@ -1,4 +1,4 @@
-import React, { useContext } from 'react'
+import React, { useContext, useEffect } from 'react';
 
 // @ts-ignore
 import ReactDOM from 'react-dom'
@@ -11,11 +11,19 @@ const configs = {
   logoutEndpoint: 'https://auth.wegostaging.com/user-auth/v2/users/logout',
   tokenEndpoint: 'https://srv.wegostaging.com/user-auth/v2/users/oauth/token',
   redirectUri: 'https://moneebarifwego.github.io/testing',
-  scope: 'users',
   extraAuthParameters: {
     "locale": "en",
-    "site_code": "SA"
+    "site_code": "SA",
+    "redirect_path": "/testing"
   },
+  extraLogoutParameters: {
+    "post_logout_redirect_path": "/testing"
+  },
+  // authorizationEndpoint: 'https://auth.wegostaging.com/users/oauth/authorize',
+  // logoutEndpoint: 'https://auth.wegostaging.com/users/logout',
+  // tokenEndpoint: 'https://auth.wegostaging.com/users/oauth/token',
+  // redirectUri: 'https://moneebarifwego.github.io/testing',
+  scope: 'users',
   // Example to redirect back to original path after login has completed
   preLogin: () => localStorage.setItem('preLoginPath', window.location.pathname),
   postLogin: () => window.location.replace(localStorage.getItem('preLoginPath') || ''),
@@ -27,7 +35,14 @@ const configs = {
 const authConfig: TAuthConfig = configs
 
 function LoginInfo(): JSX.Element {
-  const { tokenData, token, login, logOut, idToken, idTokenData, error, refreshToken, refreshAccessToken }: IAuthContext = useContext(AuthContext)
+  const { tokenData, token, logIn, logOut, idToken, idTokenData, error, refreshToken, refreshAccessToken }: IAuthContext = useContext(AuthContext)
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('re-authenticate') === 'true') {
+      logIn();
+    }
+  }, [logIn]);
 
   console.log(token);
   if (error) {
@@ -44,22 +59,6 @@ function LoginInfo(): JSX.Element {
       {token ? (
         <>
           <button onClick={()=>refreshAccessToken&&refreshAccessToken()}>Refresh Access token</button>
-          <div>
-            <h4>Login Information from ID Token (Base64 decoded JWT)</h4>
-            <pre
-                style={{
-                  width: '400px',
-                  margin: '10px',
-                  padding: '5px',
-                  border: 'black 2px solid',
-                  wordBreak: 'break-all',
-                  whiteSpace: 'break-spaces',
-                }}
-            >
-              {JSON.stringify(idTokenData, null, 2)}
-            </pre>
-          </div>
-          
           <div>
             <h4>Refresh Token (JWT)</h4>
             <pre
@@ -124,13 +123,30 @@ function LoginInfo(): JSX.Element {
             </pre>
           </div>
 
+          <div>
+            <h4>Login Information from ID Token (Base64 decoded JWT)</h4>
+            <pre
+                style={{
+                  width: '400px',
+                  margin: '10px',
+                  padding: '5px',
+                  border: 'black 2px solid',
+                  wordBreak: 'break-all',
+                  whiteSpace: 'break-spaces',
+                }}
+            >
+              {JSON.stringify(idTokenData, null, 2)}
+            </pre>
+          </div>
 
           <button onClick={() => logOut()}>Logout</button>
         </>
       ) : (
         <>
           <div>You are not logged in.</div>
-          <button onClick={() => login()}>Login</button>
+          <button onClick={() => logIn(undefined, undefined, 'popup')}>Login Popup</button>
+          <br/>
+          <button onClick={() => logIn(undefined, undefined, 'redirect')}>Login Redirect</button>
         </>
       )}
     </>

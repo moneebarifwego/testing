@@ -1,22 +1,24 @@
 import React, { createContext, useEffect, useMemo, useRef, useState } from 'react'
-import { fetchTokens, fetchWithRefreshToken, redirectToLogin, redirectToLogout, validateState } from './authentication'
 import useBrowserStorage from './Hooks'
-import {
+import { createInternalConfig } from './authConfig'
+import { fetchTokens, fetchWithRefreshToken, redirectToLogin, redirectToLogout, validateState } from './authentication'
+import { decodeJWT } from './decodeJWT'
+import { FetchError } from './errors'
+import { FALLBACK_EXPIRE_TIME, epochAtSecondsFromNow, epochTimeIsPast, getRefreshExpiresIn } from './timeUtils'
+import type {
   IAuthContext,
   IAuthProvider,
   TInternalConfig,
+  TPrimitiveRecord,
   TRefreshTokenExpiredEvent,
   TTokenData,
   TTokenResponse,
-} from './Types'
-import { createInternalConfig } from './authConfig'
-import { epochAtSecondsFromNow, epochTimeIsPast, FALLBACK_EXPIRE_TIME, getRefreshExpiresIn } from './timeUtils'
-import { decodeJWT } from './decodeJWT'
-import { FetchError } from './errors'
+} from './types'
 
 export const AuthContext = createContext<IAuthContext>({
   token: '',
   login: () => null,
+  logIn: () => null,
   logOut: () => null,
   error: null,
   loginInProgress: false,
@@ -28,75 +30,77 @@ export const AuthProvider = ({ authConfig, children }: IAuthProvider) => {
   const config: TInternalConfig = useMemo(() => createInternalConfig(authConfig), [authConfig])
 
   const [refreshToken, setRefreshToken] = useBrowserStorage<string | undefined>(
-    'refreshToken',
+    `${config.storageKeyPrefix}refreshToken`,
     undefined,
-    config.storage,
-    config.storageKeyPrefix
+    config.storage
   )
-  const [refreshTokenExpire, setRefreshTokenExpire] = useBrowserStorage<number>(
-    'refreshTokenExpire',
-    epochAtSecondsFromNow(2 * FALLBACK_EXPIRE_TIME),
-    config.storage,
-    config.storageKeyPrefix
+  const [refreshTokenExpire, setRefreshTokenExpire] = useBrowserStorage<number | undefined>(
+    `${config.storageKeyPrefix}refreshTokenExpire`,
+    undefined,
+    config.storage
   )
-  const [token, setToken] = useBrowserStorage<string>('token', '', config.storage, config.storageKeyPrefix)
+  const [token, setToken] = useBrowserStorage<string>(`${config.storageKeyPrefix}token`, '', config.storage)
   const [tokenExpire, setTokenExpire] = useBrowserStorage<number>(
-    'tokenExpire',
+    `${config.storageKeyPrefix}tokenExpire`,
     epochAtSecondsFromNow(FALLBACK_EXPIRE_TIME),
-    config.storage,
-    config.storageKeyPrefix
+    config.storage
   )
   const [idToken, setIdToken] = useBrowserStorage<string | undefined>(
-    'idToken',
+    `${config.storageKeyPrefix}idToken`,
     undefined,
-    config.storage,
-    config.storageKeyPrefix
+    config.storage
   )
   const [loginInProgress, setLoginInProgress] = useBrowserStorage<boolean>(
-    'loginInProgress',
+    `${config.storageKeyPrefix}loginInProgress`,
     false,
-    config.storage,
-    config.storageKeyPrefix
+    config.storage
   )
   const [refreshInProgress, setRefreshInProgress] = useBrowserStorage<boolean>(
-    'refreshInProgress',
+    `${config.storageKeyPrefix}refreshInProgress`,
     false,
-    config.storage,
-    config.storageKeyPrefix
+    config.storage
+  )
+  const [loginMethod, setLoginMethod] = useBrowserStorage<'redirect' | 'popup'>(
+    `${config.storageKeyPrefix}loginMethod`,
+    'redirect',
+    config.storage
   )
   const [tokenData, setTokenData] = useState<TTokenData | undefined>()
   const [idTokenData, setIdTokenData] = useState<TTokenData | undefined>()
   const [error, setError] = useState<string | null>(null)
 
-  let interval: any
-
   function clearStorage() {
     setRefreshToken(undefined)
     setToken('')
     setTokenExpire(epochAtSecondsFromNow(FALLBACK_EXPIRE_TIME))
-    setRefreshTokenExpire(epochAtSecondsFromNow(FALLBACK_EXPIRE_TIME))
+    setRefreshTokenExpire(undefined)
     setIdToken(undefined)
     setTokenData(undefined)
     setIdTokenData(undefined)
     setLoginInProgress(false)
   }
 
-  function logOut(state?: string, logoutHint?: string) {
+  function logOut(state?: string, logoutHint?: string, additionalParameters?: TPrimitiveRecord) {
     clearStorage()
     setError(null)
-    if (config?.logoutEndpoint && token) redirectToLogout(config, token, refreshToken, idToken, state, logoutHint)
+    if (config?.logoutEndpoint && token)
+      redirectToLogout(config, token, refreshToken, idToken, state, logoutHint, additionalParameters)
   }
 
-  function login(state?: string) {
+  function logIn(state?: string, additionalParameters?: TPrimitiveRecord, method: 'redirect' | 'popup' = 'redirect') {
     clearStorage()
     setLoginInProgress(true)
+    setLoginMethod(method)
     // TODO: Raise error on wrong state type in v2
     let typeSafePassedState = state
     if (state && typeof state !== 'string') {
-      console.warn(`Passed login state must be of type 'string'. Received '${state}'. Ignoring value...`)
+      const jsonState = JSON.stringify(state)
+      console.warn(
+        `Passed login state must be of type 'string'. Received '${jsonState}'. Ignoring value. In a future version, an error will be thrown here.`
+      )
       typeSafePassedState = undefined
     }
-    redirectToLogin(config, typeSafePassedState).catch((error) => {
+    redirectToLogin(config, typeSafePassedState, additionalParameters, method).catch((error) => {
       console.error(error)
       setError(error.message)
       setLoginInProgress(false)
@@ -104,33 +108,40 @@ export const AuthProvider = ({ authConfig, children }: IAuthProvider) => {
   }
 
   function handleTokenResponse(response: TTokenResponse) {
-
-    console.log("TokenResp : ", response)
     setToken(response.access_token)
-    setRefreshToken(response.refresh_token)
-    const tokenExpiresIn = config.tokenExpiresIn ?? response.expires_in ?? FALLBACK_EXPIRE_TIME
-    setTokenExpire(epochAtSecondsFromNow(tokenExpiresIn))
-    const refreshTokenExpiresIn = config.refreshTokenExpiresIn ?? getRefreshExpiresIn(tokenExpiresIn, response)
-    setRefreshTokenExpire(epochAtSecondsFromNow(refreshTokenExpiresIn))
     setIdToken(response.id_token)
+    let tokenExp = FALLBACK_EXPIRE_TIME
+    // Decode IdToken, so we can use "exp" from that as fallback if expire not returned in the response
     try {
-      if (response.id_token) setIdTokenData(decodeJWT(response.id_token))
+      if (response.id_token) {
+        const decodedToken = decodeJWT(response.id_token)
+        tokenExp = Math.round(Number(decodedToken.exp) - Date.now() / 1000) // number of seconds from now
+      }
     } catch (e) {
       console.warn(`Failed to decode idToken: ${(e as Error).message}`)
     }
-    try {
-      if (config.decodeToken) setTokenData(decodeJWT(response.access_token))
-    } catch (e) {
-      console.warn(`Failed to decode access token: ${(e as Error).message}`)
+    const tokenExpiresIn = config.tokenExpiresIn ?? response.expires_in ?? tokenExp
+    setTokenExpire(epochAtSecondsFromNow(tokenExpiresIn))
+    const refreshTokenExpiresIn = config.refreshTokenExpiresIn ?? getRefreshExpiresIn(tokenExpiresIn, response)
+    if (response.refresh_token) {
+      setRefreshToken(response.refresh_token)
+      if (!refreshTokenExpire || config.refreshTokenExpiryStrategy !== 'absolute') {
+        setRefreshTokenExpire(epochAtSecondsFromNow(refreshTokenExpiresIn))
+      }
     }
   }
 
   function handleExpiredRefreshToken(initial = false): void {
     // If it's the first page load, OR there is no sessionExpire callback, we trigger a new login
-    if (initial) return login()
+    if (initial) return logIn()
+
     // TODO: Breaking change - remove automatic login during ongoing session
-    else if (!config.onRefreshTokenExpire) return login()
-    else return config.onRefreshTokenExpire({ login } as TRefreshTokenExpiredEvent)
+    if (!config.onRefreshTokenExpire) return logIn()
+
+    config.onRefreshTokenExpire({
+      login: logIn,
+      logIn,
+    } as TRefreshTokenExpiredEvent)
   }
 
   function refreshAccessToken(initial = false): void {
@@ -139,10 +150,13 @@ export const AuthProvider = ({ authConfig, children }: IAuthProvider) => {
     // if (!epochTimeIsPast(tokenExpire)) return
 
     // Other instance (tab) is currently refreshing. This instance skip the refresh if not initial
-    // if (refreshInProgress && !initial) return
+    if (refreshInProgress && !initial) return
+
+    // If no refreshToken, act as if the refreshToken expired (session expired)
+    if (!refreshToken) return handleExpiredRefreshToken(initial)
 
     // The refreshToken has expired
-    // if (epochTimeIsPast(refreshTokenExpire)) return handleExpiredRefreshToken(initial)
+    if (refreshTokenExpire && epochTimeIsPast(refreshTokenExpire)) return handleExpiredRefreshToken(initial)
 
     // The access_token has expired, and we have a non-expired refresh_token. Use it to refresh access_token.
     if (refreshToken) {
@@ -153,20 +167,19 @@ export const AuthProvider = ({ authConfig, children }: IAuthProvider) => {
           if (error instanceof FetchError) {
             // If the fetch failed with status 400, assume expired refresh token
             if (error.status === 400) {
-              return handleExpiredRefreshToken(initial)
+              handleExpiredRefreshToken(initial)
+              return
             }
-            // Unknown error. Set error, and login if first page load
-            else {
-              console.error(error)
-              setError(error.message)
-              if (initial) login()
-            }
+            // Unknown error. Set error, and log in if first page load
+            console.error(error)
+            setError(error.message)
+            if (initial) logIn()
           }
-          // Unknown error. Set error, and login if first page load
+          // Unknown error. Set error, and log in if first page load
           else if (error instanceof Error) {
             console.error(error)
             setError(error.message)
-            if (initial) login()
+            if (initial) logIn()
           }
         })
         .finally(() => {
@@ -179,80 +192,21 @@ export const AuthProvider = ({ authConfig, children }: IAuthProvider) => {
     )
   }
 
-  // Register the 'check for soon expiring access token' interval (Every 10 seconds)
-  // useEffect(() => {
-  //   interval = setInterval(() => refreshAccessToken(), 10000) // eslint-disable-line
-  //   return () => clearInterval(interval)
-  // }, [token, refreshToken, refreshTokenExpire, tokenExpire]) // Replace the interval with a new when values used inside refreshAccessToken changes
+  // Register the 'check for soon expiring access token' interval (every ~10 seconds).
+  useEffect(() => {
+    // The randomStagger is used to avoid multiple tabs logging in at the exact same time.
+    const randomStagger = 10000 * Math.random()
+    const interval = setInterval(() => refreshAccessToken(), 5000 + randomStagger)
+    return () => clearInterval(interval)
+  }, [token, refreshToken, refreshTokenExpire, tokenExpire, refreshInProgress]) // Replace the interval with a new when values used inside refreshAccessToken changes
 
   // This ref is used to make sure the 'fetchTokens' call is only made once.
   // Multiple calls with the same code will, and should, return an error from the API
   // See: https://beta.reactjs.org/learn/synchronizing-with-effects#how-to-handle-the-effect-firing-twice-in-development
   const didFetchTokens = useRef(false)
 
-  // Runs once on page load
+  // Load token-/idToken-data when tokens change
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search)
-    const reAuthenticaticate = urlParams.get('re-authenticate')
-
-  if(reAuthenticaticate){
-    console.log("IN IT : Moneeb "+reAuthenticaticate)
-    login()
-    return;
-  }
-  console.log('reAuthenticaticate', loginInProgress)
-
-    // The client has been redirected back from the auth endpoint with an auth code
-    if (loginInProgress) {
-      const urlParams = new URLSearchParams(window.location.search)
-      if (!urlParams.get('code')) {
-        // This should not happen. There should be a 'code' parameter in the url by now..."
-        const error_description =
-          urlParams.get('error_description') ||
-          'Bad authorization state. Refreshing the page and log in again might solve the issue.'
-        console.error(
-          error_description +
-            "\nExpected  to find a '?code=' parameter in the URL by now. Did the authentication get aborted or interrupted?"
-        )
-        setError(error_description)
-        clearStorage()
-        return
-      }
-      // Make sure we only try to use the auth code once
-      if (!didFetchTokens.current) {
-        didFetchTokens.current = true
-        try {
-          validateState(urlParams)
-        } catch (e: any) {
-          console.error(e)
-          setError((e as Error).message)
-        }
-        // Request tokens from auth server with the auth code
-        fetchTokens(config , clearStorage)
-          .then((tokens: TTokenResponse) => {
-            handleTokenResponse(tokens)
-            // Call any postLogin function in authConfig
-            if (config?.postLogin) config.postLogin()
-          })
-          .catch((error: Error) => {
-            console.error(error)
-            setError(error.message)
-          })
-          .finally(() => {
-            if (config.clearURL) {
-              // Clear ugly url params
-              window.history.replaceState(null, '', window.location.pathname)
-            }
-            setLoginInProgress(false)
-          })
-      }
-      return
-    }
-
-    // First page visit
-    if (!token && config.autoLogin) return login()
-
-    // Page refresh after login has succeeded
     try {
       if (idToken) setIdTokenData(decodeJWT(idToken))
     } catch (e) {
@@ -263,11 +217,78 @@ export const AuthProvider = ({ authConfig, children }: IAuthProvider) => {
     } catch (e) {
       console.warn(`Failed to decode access token: ${(e as Error).message}`)
     }
+  }, [token, idToken])
+
+  // Runs once on page load
+  useEffect(() => {
+    // The client has been redirected back from the auth endpoint with an auth code
+    if (loginInProgress) {
+      const urlParams = new URLSearchParams(window.location.search)
+      if (!urlParams.get('code')) {
+        // This should not happen. There should be a 'code' parameter in the url by now...
+        const error_description =
+          urlParams.get('error_description') ||
+          'Bad authorization state. Refreshing the page and log in again might solve the issue.'
+        console.error(
+          `${error_description}\nExpected  to find a '?code=' parameter in the URL by now. Did the authentication get aborted or interrupted?`
+        )
+        setError(error_description)
+        clearStorage()
+        return
+      }
+      // Make sure we only try to use the auth code once
+      if (!didFetchTokens.current) {
+        didFetchTokens.current = true
+        try {
+          validateState(urlParams, config.storage)
+        } catch (e: unknown) {
+          console.error(e)
+          setError((e as Error).message)
+        }
+        // Request tokens from auth server with the auth code
+        fetchTokens(config)
+          .then((tokens: TTokenResponse) => {
+            handleTokenResponse(tokens)
+            // Call any postLogin function in authConfig
+            if (config?.postLogin) config.postLogin()
+            if (loginMethod === 'popup') window.close()
+          })
+          .catch((error: Error) => {
+            console.error(error)
+            setError(error.message)
+          })
+          .finally(() => {
+            if (config.clearURL) {
+              // Clear ugly url params
+              window.history.replaceState(null, '', `${window.location.pathname}${window.location.hash}`)
+            }
+            setLoginInProgress(false)
+          })
+      }
+      return
+    }
+
+    // First page visit
+    if (!token && config.autoLogin) return logIn()
     refreshAccessToken(true) // Check if token should be updated
-  }, []) // eslint-disable-line
+  }, [])
 
   return (
-    <AuthContext.Provider value={{ token, tokenData, idToken, idTokenData, login, logOut, error, loginInProgress, refreshToken, refreshAccessToken }}>
+    <AuthContext.Provider
+      value={{
+        token,
+        tokenData,
+        idToken,
+        idTokenData,
+        login: logIn,
+        logIn,
+        logOut,
+        error,
+        loginInProgress,
+        refreshToken,
+        refreshAccessToken
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )

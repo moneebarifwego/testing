@@ -1,8 +1,7 @@
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
 interface TTokenRqBase {
   grant_type: string
-  scope?: string
   client_id: string
   redirect_uri: string
 }
@@ -13,12 +12,14 @@ export interface TTokenRequestWithCodeAndVerifier extends TTokenRqBase {
 }
 
 export interface TTokenRequestForRefresh extends TTokenRqBase {
+  scope?: string
   refresh_token: string
 }
 
 export type TTokenRequest = TTokenRequestWithCodeAndVerifier | TTokenRequestForRefresh
 
 export type TTokenData = {
+  // biome-ignore lint: It really can be `any` (almost)
   [x: string]: any
 }
 
@@ -40,8 +41,10 @@ export interface IAuthProvider {
 
 export interface IAuthContext {
   token: string
-  logOut: (state?: string, logoutHint?: string) => void
-  login: (state?: string) => void
+  logIn: (state?: string, additionalParameters?: TPrimitiveRecord, method?: 'redirect' | 'popup') => void
+  logOut: (state?: string, logoutHint?: string, additionalParameters?: TPrimitiveRecord) => void
+  /** @deprecated Use `logIn` instead */
+  login: (state?: string, additionalParameters?: TPrimitiveRecord) => void
   error: string | null
   tokenData?: TTokenData
   idToken?: string
@@ -50,6 +53,8 @@ export interface IAuthContext {
   refreshToken? : string
   refreshAccessToken?: (inital?:boolean)=>void
 }
+
+export type TPrimitiveRecord = { [key: string]: string | boolean | number }
 
 // Input from users of the package, some optional values
 export type TAuthConfig = {
@@ -67,19 +72,23 @@ export type TAuthConfig = {
   decodeToken?: boolean
   autoLogin?: boolean
   clearURL?: boolean
-  // TODO: Remove in 2.0
-  extraAuthParams?: { [key: string]: string | boolean | number }
-  extraAuthParameters?: { [key: string]: string | boolean | number }
-  extraTokenParameters?: { [key: string]: string | boolean | number }
-  extraLogoutParameters?: { [key: string]: string | boolean | number }
+  /** @deprecated Use `extraAuthParameters` instead. Will be removed in a future version. */
+  extraAuthParams?: TPrimitiveRecord
+  extraAuthParameters?: TPrimitiveRecord
+  extraTokenParameters?: TPrimitiveRecord
+  extraLogoutParameters?: TPrimitiveRecord
   tokenExpiresIn?: number
   refreshTokenExpiresIn?: number
+  refreshTokenExpiryStrategy?: 'renewable' | 'absolute'
   storage?: 'session' | 'local'
-  storageKeyPrefix?: 'ROCP_'
+  storageKeyPrefix?: string
+  refreshWithScope?: boolean
 }
 
 export type TRefreshTokenExpiredEvent = {
-  login: () => void
+  logIn: (state?: string, additionalParameters?: TPrimitiveRecord, method?: 'redirect' | 'popup') => void
+  /** @deprecated Use `logIn` instead. Will be removed in a future version. */
+  login: (state?: string, additionalParameters?: TPrimitiveRecord, method?: 'redirect' | 'popup') => void
 }
 
 // The AuthProviders internal config type. All values will be set by user provided, or default values
@@ -98,13 +107,15 @@ export type TInternalConfig = {
   decodeToken: boolean
   autoLogin: boolean
   clearURL: boolean
-  // TODO: Remove in 2.0
-  extraAuthParams?: { [key: string]: string | boolean | number }
-  extraAuthParameters?: { [key: string]: string | boolean | number }
-  extraTokenParameters?: { [key: string]: string | boolean | number }
-  extraLogoutParameters?: { [key: string]: string | boolean | number }
+  /** @deprecated Use `extraAuthParameters` instead. Will be removed in a future version. */
+  extraAuthParams?: TPrimitiveRecord
+  extraAuthParameters?: TPrimitiveRecord
+  extraTokenParameters?: TPrimitiveRecord
+  extraLogoutParameters?: TPrimitiveRecord
   tokenExpiresIn?: number
   refreshTokenExpiresIn?: number
+  refreshTokenExpiryStrategy: 'renewable' | 'absolute'
   storage: 'session' | 'local'
-  storageKeyPrefix?: string
+  storageKeyPrefix: string
+  refreshWithScope: boolean
 }

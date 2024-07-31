@@ -1,22 +1,14 @@
 import { useEffect, useState } from 'react'
 
-function useBrowserStorage<T>(
-  key: string,
-  initialValue: T,
-  type: 'session' | 'local',
-  prefix?: string
-): [T, (v: T) => void] {
+function useBrowserStorage<T>(key: string, initialValue: T, type: 'session' | 'local'): [T, (v: T) => void] {
   const storage = type === 'session' ? sessionStorage : localStorage
-  key = `${prefix ?? ''}${key}`
 
   const [storedValue, setStoredValue] = useState<T>(() => {
     const item = storage.getItem(key)
     try {
       return item ? JSON.parse(item) : initialValue
-    } catch (error: any) {
-      console.warn(
-        `Failed to parse stored value for '${key}'.\nContinuing with default value.\nError: ${error.message}`
-      )
+    } catch (error: unknown) {
+      console.warn(`Failed to parse stored value for '${key}'.\nContinuing with default value.`)
       return initialValue
     }
   })
@@ -33,14 +25,22 @@ function useBrowserStorage<T>(
       setStoredValue(valueToStore)
       storage.setItem(key, JSON.stringify(valueToStore))
     } catch (error) {
-      console.log(`Failed to store value '${value}' for key '${key}'`)
+      console.error(`Failed to store value '${value}' for key '${key}'`)
     }
   }
 
   useEffect(() => {
     const storageEventHandler = (event: StorageEvent) => {
       if (event.storageArea === storage && event.key === key) {
-        setStoredValue(JSON.parse(event.newValue ?? '') as T)
+        if (event.newValue === null) {
+          setStoredValue(undefined as T)
+        } else {
+          try {
+            setStoredValue(JSON.parse(event.newValue ?? '') as T)
+          } catch (error: unknown) {
+            console.warn(`Failed to handle storageEvent's newValue='${event.newValue}' for key '${key}'`)
+          }
+        }
       }
     }
     window.addEventListener('storage', storageEventHandler, false)

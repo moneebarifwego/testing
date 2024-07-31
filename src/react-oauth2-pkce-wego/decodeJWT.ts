@@ -1,4 +1,4 @@
-import { TTokenData } from './Types'
+import type { TTokenData } from './types'
 
 /**
  * Decodes the base64 encoded JWT. Returns a TToken.
@@ -10,9 +10,7 @@ export const decodeJWT = (token: string): TTokenData => {
     const jsonPayload = decodeURIComponent(
       atob(base64)
         .split('')
-        .map(function (c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-        })
+        .map((c) => `%${`00${c.charCodeAt(0).toString(16)}`.slice(-2)}`)
         .join('')
     )
     return JSON.parse(jsonPayload)
