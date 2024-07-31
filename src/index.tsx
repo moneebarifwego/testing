@@ -14,11 +14,11 @@ const configs = {
   extraAuthParameters: {
     "locale": "en",
     "site_code": "SA",
-    "redirect_path": "/testing"
+    // "redirect_path": "/testing"
   },
-  extraLogoutParameters: {
-    "post_logout_redirect_path": "/testing"
-  },
+  // extraLogoutParameters: {
+  //   "post_logout_redirect_path": "/testing"
+  // },
   // authorizationEndpoint: 'https://auth.wegostaging.com/users/oauth/authorize',
   // logoutEndpoint: 'https://auth.wegostaging.com/users/logout',
   // tokenEndpoint: 'https://auth.wegostaging.com/users/oauth/token',
