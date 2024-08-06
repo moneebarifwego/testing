@@ -54,6 +54,7 @@ export async function redirectToLogin(
     if (config?.preLogin) config.preLogin()
 
     if (method === 'popup') {
+      // Calculate the position of the popup to be centered
       var width = 725;
       var height = 650;
       var left = window.screenLeft + (window.innerWidth / 2) - (width / 2);

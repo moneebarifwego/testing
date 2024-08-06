@@ -14,7 +14,7 @@ const configs = {
   extraAuthParameters: {
     "locale": "en",
     "site_code": "SA",
-    // "redirect_path": "/testing"
+    "additional_attributes": "eyJhdXRoX3Ntc19lbmFibGVkIjoiMSJ9"
   },
   // extraLogoutParameters: {
   //   "post_logout_redirect_path": "/testing"
@@ -36,6 +36,7 @@ const authConfig: TAuthConfig = configs
 
 function LoginInfo(): JSX.Element {
   const { tokenData, token, logIn, logOut, idToken, idTokenData, error, refreshToken, refreshAccessToken }: IAuthContext = useContext(AuthContext)
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -43,6 +44,15 @@ function LoginInfo(): JSX.Element {
       logIn();
     }
   }, [logIn]);
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('code')) {
+      setLoading(true);
+    } else {
+      setLoading(false);
+    }
+  }, []);
 
   console.log(token);
   if (error) {
@@ -56,7 +66,8 @@ function LoginInfo(): JSX.Element {
 
   return (
     <>
-      {token ? (
+      {loading ? (<div>Redirecting Back to App</div>) : (
+      token ? (
         <>
           <button onClick={()=>refreshAccessToken&&refreshAccessToken()}>Refresh Access token</button>
           <div>
@@ -148,7 +159,7 @@ function LoginInfo(): JSX.Element {
           <br/>
           <button onClick={() => logIn(undefined, undefined, 'redirect')}>Login Redirect</button>
         </>
-      )}
+      ))}
     </>
   )
 }
