@@ -59,7 +59,7 @@ export async function redirectToLogin(
       var height = 650;
       var left = window.screenLeft + (window.innerWidth / 2) - (width / 2);
       var top = window.screenTop + (window.innerHeight / 2) - (height / 2);
-      const handle: null | WindowProxy = window.open(loginUrl, 'loginPopup', `popup width=${width}, height=${height}, left=${left}, top=${top}`);
+      const handle: null | WindowProxy = window.open(loginUrl, 'loginPopup', `popup=true, width=${width}, height=${height}, left=${left}, top=${top}`);
       if (handle) return
       console.warn('Popup blocked. Redirecting to login page. Disable popup blocker to use popup login.')
     }
