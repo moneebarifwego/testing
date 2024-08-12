@@ -20,9 +20,19 @@ export async function redirectToLogin(
 ): Promise<void> {
   const storage = config.storage === 'session' ? sessionStorage : localStorage
 
+  
   // Create and store a random string in storage, used as the 'code_verifier'
   const codeVerifier = generateRandomString(96)
   storage.setItem(codeVerifierStorageKey, codeVerifier)
+  let popupHandle: null | WindowProxy;
+  if (method === 'popup') {
+    // Calculate the position of the popup to be centered
+    var width = 725;
+    var height = 650;
+    var left = window.screenLeft + (window.innerWidth / 2) - (width / 2);
+    var top = window.screenTop + (window.innerHeight / 2) - (height / 2);
+    popupHandle = window.open('https://www.wego.com', 'loginPopup', `popup=true, width=${width}, height=${height}, left=${left}, top=${top}`);
+  }
 
   // Hash and Base64URL encode the code_verifier, used as the 'code_challenge'
   return generateCodeChallenge(codeVerifier).then((codeChallenge) => {
@@ -54,13 +64,10 @@ export async function redirectToLogin(
     if (config?.preLogin) config.preLogin()
 
     if (method === 'popup') {
-      // Calculate the position of the popup to be centered
-      var width = 725;
-      var height = 650;
-      var left = window.screenLeft + (window.innerWidth / 2) - (width / 2);
-      var top = window.screenTop + (window.innerHeight / 2) - (height / 2);
-      const handle: null | WindowProxy = window.open(loginUrl, 'loginPopup', `popup=true, width=${width}, height=${height}, left=${left}, top=${top}`);
-      if (handle) return
+      if (popupHandle) {
+        popupHandle.location.assign(loginUrl);
+        return;
+      }
       console.warn('Popup blocked. Redirecting to login page. Disable popup blocker to use popup login.')
     }
     window.location.assign(loginUrl)
