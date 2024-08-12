@@ -237,7 +237,7 @@ export const AuthProvider = ({ authConfig, children }: IAuthProvider) => {
         return
       }
 
-      if (loginMethod === 'popup') {
+      if (loginMethod === 'popup' && window.opener) {
         setLoginMethod('redirect');
         window.opener.location.href = window.location;
         window.close();
