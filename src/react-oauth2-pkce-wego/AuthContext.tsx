@@ -236,6 +236,14 @@ export const AuthProvider = ({ authConfig, children }: IAuthProvider) => {
         clearStorage()
         return
       }
+
+      if (loginMethod === 'popup') {
+        setLoginMethod('redirect');
+        window.opener.location.href = window.location;
+        window.close();
+        return;
+      }
+
       // Make sure we only try to use the auth code once
       if (!didFetchTokens.current) {
         didFetchTokens.current = true
@@ -251,7 +259,7 @@ export const AuthProvider = ({ authConfig, children }: IAuthProvider) => {
             handleTokenResponse(tokens)
             // Call any postLogin function in authConfig
             if (config?.postLogin) config.postLogin()
-            if (loginMethod === 'popup') window.close()
+            //if (loginMethod === 'popup') window.close()
           })
           .catch((error: Error) => {
             console.error(error)
