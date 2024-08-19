@@ -26,8 +26,8 @@ const configs = {
   // redirectUri: 'https://moneebarifwego.github.io/testing',
   scope: 'users',
   // Example to redirect back to original path after login has completed
-  preLogin: () => localStorage.setItem('preLoginPath', window.location.pathname),
-  postLogin: () => window.location.replace(localStorage.getItem('preLoginPath') || ''),
+  //preLogin: () => localStorage.setItem('preLoginPath', window.location.pathname),
+  //postLogin: () => window.location.replace(localStorage.getItem('preLoginPath') || ''),
   decodeToken: true,
   autoLogin: false,
   onRefreshTokenExpire: (event: { login: () => any }) => window.confirm('Session expired. Refresh page to continue using the site?') && event.login(),
@@ -46,15 +46,6 @@ function LoginInfo(): JSX.Element {
     }
   }, [logIn]);
 
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('code')) {
-      setLoading(true);
-    } else {
-      setLoading(false);
-    }
-  }, []);
-
   console.log(token);
   if (error) {
     return (
@@ -67,8 +58,7 @@ function LoginInfo(): JSX.Element {
 
   return (
     <>
-      {loading ? (<div>Redirecting Back to App</div>) : (
-      token ? (
+      {token ? (
         <>
           <button onClick={()=>refreshAccessToken&&refreshAccessToken()}>Refresh Access token</button>
           <div>
@@ -160,7 +150,7 @@ function LoginInfo(): JSX.Element {
           <br/>
           <button onClick={() => logIn(undefined, undefined, 'redirect')}>Login Redirect</button>
         </>
-      ))}
+      )}
     </>
   )
 }

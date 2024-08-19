@@ -268,7 +268,15 @@ export const AuthProvider = ({ authConfig, children }: IAuthProvider) => {
           .finally(() => {
             if (config.clearURL) {
               // Clear ugly url params
-              window.history.replaceState(null, '', `${window.location.pathname}${window.location.hash}`)
+              //window.history.replaceState(null, '', `${window.location.pathname}${window.location.hash}`)
+              // Parse the current URL
+              const url = new URL(window.location.href);
+
+              // Remove the 'code' query parameter
+              url.searchParams.delete('code');
+
+              // Replace the current URL without the 'code' parameter
+              window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
             }
             setLoginInProgress(false)
           })
