@@ -14,7 +14,8 @@ const configs = {
   extraAuthParameters: {
     "locale": "en",
     "site_code": "SA",
-    "additional_attributes": "eyJhdXRoX3Ntc19lbmFibGVkIjoiMSJ9"
+    "additional_attributes": "eyJhdXRoX3Ntc19lbmFibGVkIjoiMSJ9",
+    "redirect_path" : "?a=2&b=4"
   },
   // extraLogoutParameters: {
   //   "post_logout_redirect_path": "/testing"
