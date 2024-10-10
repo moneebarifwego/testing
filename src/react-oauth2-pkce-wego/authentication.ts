@@ -44,8 +44,16 @@ export async function redirectToLogin(
       code_challenge: codeChallenge,
       code_challenge_method: 'S256',
       ...config.extraAuthParameters,
-      ...additionalParameters,
     })
+
+    if (additionalParameters) {
+      Object.entries(additionalParameters).forEach(([key, value]) => {
+
+        const charactersToEncode = /[|{}\\ <>\[\]`^]/g;
+        const encodedValue = String(value).replace(charactersToEncode, (char) => encodeURIComponent(char));
+        params.append(key, encodedValue);
+      });
+    }
 
     if (config.scope !== undefined && !params.has('scope')) {
       params.append('scope', config.scope)

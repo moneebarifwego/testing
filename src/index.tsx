@@ -15,7 +15,6 @@ const configs = {
     "locale": "en",
     "site_code": "SA",
     "additional_attributes": "eyJhdXRoX3Ntc19lbmFibGVkIjoiMSJ9",
-    "redirect_path" : "?a=2&b=4"
   },
   // extraLogoutParameters: {
   //   "post_logout_redirect_path": "/testing"
@@ -38,6 +37,8 @@ const authConfig: TAuthConfig = configs
 function LoginInfo(): JSX.Element {
   const { tokenData, token, logIn, logOut, idToken, idTokenData, error, refreshToken, refreshAccessToken }: IAuthContext = useContext(AuthContext)
   const [loading, setLoading] = useState<boolean>(false);
+
+  const [inputValue, setInputValue] = useState('');
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -146,9 +147,17 @@ function LoginInfo(): JSX.Element {
       ) : (
         <>
           <div>You are not logged in.</div>
-          <button onClick={() => logIn(undefined, undefined, 'popup')}>Login Popup</button>
+          <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder="Enter additional parameter"
+          />
+
           <br/>
-          <button onClick={() => logIn(undefined, undefined, 'redirect')}>Login Redirect</button>
+          <button onClick={() => logIn(undefined, {redirect_path: `?val=${inputValue}`}, 'popup')}>Login Popup</button>
+          <br/>
+          <button onClick={() => logIn(undefined, {redirect_path: `?val=${inputValue}`}, 'redirect')}>Login Redirect</button>
         </>
       )}
     </>
