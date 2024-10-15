@@ -276,7 +276,7 @@ export const AuthProvider = ({ authConfig, children }: IAuthProvider) => {
               url.searchParams.delete('code');
 
               // Replace the current URL without the 'code' parameter
-              window.history.replaceState(null, '', `${url.pathname}${decodeURIComponent(url.search)}${url.hash}`);
+              window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
             }
             setLoginInProgress(false)
           })

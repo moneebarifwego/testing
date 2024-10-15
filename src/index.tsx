@@ -47,6 +47,15 @@ function LoginInfo(): JSX.Element {
     }
   }, [logIn]);
 
+  // Run this when the component mounts to populate input with query param value
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const val = urlParams.get('val');
+    if (val) {
+      setInputValue(val);
+    }
+  }, []);
+
   console.log(token);
   if (error) {
     return (
@@ -61,6 +70,15 @@ function LoginInfo(): JSX.Element {
     <>
       {token ? (
         <>
+          <div>
+            <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="Enter additional parameter"
+            />
+          </div>
+          <br/>
           <button onClick={()=>refreshAccessToken&&refreshAccessToken()}>Refresh Access token</button>
           <div>
             <h4>Refresh Token (JWT)</h4>
@@ -142,7 +160,7 @@ function LoginInfo(): JSX.Element {
             </pre>
           </div>
 
-          <button onClick={() => logOut()}>Logout</button>
+          <button onClick={() => logOut(undefined, undefined, {redirect_path: `?val=${inputValue}`})}>Logout</button>
         </>
       ) : (
         <>
